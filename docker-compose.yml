@@ -1,0 +1,31 @@
+services:
+  traefik:
+    image: traefik:v3.4
+    container_name: traefik
+    restart: unless-stopped
+
+    networks:
+     # Connect to the 'traefik_proxy' overlay network for inter-container communication across nodes
+      - proxy_network
+
+    ports:
+      - "80:80"
+      - "8080:8080"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    command:
+
+      # API & Dashboard 
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      
+      # ENTRYPOINT HTTP
+      - "--entrypoints.web.address=:80"
+
+networks:
+  proxy_network:
+    name: proxy_network
+    external: true
