@@ -10,20 +10,33 @@ services:
 
     ports:
       - "80:80"
+      - "443:443"
       - "8080:8080"
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./acme.json:/acme.json
 
     command:
 
       # API & Dashboard 
       - "--api.dashboard=true"
       - "--api.insecure=true"
+
+      # PROVIDERS DOCKER
       - "--providers.docker=true"
       
       # ENTRYPOINT HTTP
       - "--entrypoints.web.address=:80"
+
+      # HTTPS entrypoint
+      - "--entrypoints.websecure.address=:443"     
+
+      # Let's Encrypt (ACME)
+      - "--certificatesresolvers.myresolver.acme.email=tu-correo@ejemplo.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/acme.json"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web" 
 
 networks:
   proxy_network:
