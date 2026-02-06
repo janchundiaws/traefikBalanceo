@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    restart: unless-stopped
+    user: root
+
+    # Jenkins escucha en 8080 dentro del contenedor
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    networks:
+      - proxy_network
+
+    labels:
+      - "traefik.enable=true"
+
+      # -------------------------
+      # HTTP → HTTPS
+      # -------------------------
+      - "traefik.http.routers.jenkis-http.rule=Host(`jenkis.william-as.com`)"
+      - "traefik.http.routers.jenkis-http.entrypoints=web"
+      - "traefik.http.routers.jenkis-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+      # -------------------------
+      # HTTPS
+      # -------------------------
+      - "traefik.http.routers.jenkis.rule=Host(`jenkis.william-as.com`)"
+      - "traefik.http.routers.jenkis.entrypoints=websecure"
+      - "traefik.http.routers.jenkis.tls.certresolver=myresolver"
+
+      # -------------------------
+      # Servicio interno
+      # -------------------------
+      - "traefik.http.services.jenkis.loadbalancer.server.port=8080"
+
+volumes:
+  jenkins_home:
+
+networks:
+  proxy_network:
+    external: true
