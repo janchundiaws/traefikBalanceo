@@ -8,9 +8,11 @@ services:
     user: root
 
     # Jenkins escucha en 8080 dentro del contenedor
+    # NO exponemos puertos al host porque usarás Traefik
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/local/bin/docker:/usr/local/bin/docker   # usa docker del host
 
     networks:
       - proxy_network
@@ -18,24 +20,18 @@ services:
     labels:
       - "traefik.enable=true"
 
-      # -------------------------
       # HTTP → HTTPS
-      # -------------------------
       - "traefik.http.routers.jenkis-http.rule=Host(`jenkis.william-as.com`)"
       - "traefik.http.routers.jenkis-http.entrypoints=web"
       - "traefik.http.routers.jenkis-http.middlewares=redirect-to-https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 
-      # -------------------------
       # HTTPS
-      # -------------------------
       - "traefik.http.routers.jenkis.rule=Host(`jenkis.william-as.com`)"
       - "traefik.http.routers.jenkis.entrypoints=websecure"
       - "traefik.http.routers.jenkis.tls.certresolver=myresolver"
 
-      # -------------------------
       # Servicio interno
-      # -------------------------
       - "traefik.http.services.jenkis.loadbalancer.server.port=8080"
 
 volumes:
