@@ -5,7 +5,6 @@ services:
     restart: unless-stopped
 
     networks:
-     # Connect to the 'traefik_proxy' overlay network for inter-container communication across nodes
       - proxy_network
 
     ports:
@@ -18,29 +17,29 @@ services:
       - ./acme.json:/acme.json
 
     command:
-
-      # API & Dashboard 
+      # API & Dashboard
       - "--api.dashboard=true"
       - "--api.insecure=true"
 
-      # PROVIDERS DOCKER
+      # Providers Docker
       - "--providers.docker=true"
-      
-      # ENTRYPOINT HTTP
+      - "--providers.docker.network=proxy_network"
+      - "--providers.docker.exposedbydefault=false"
+
+      # Entrypoints
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
 
-      # HTTPS entrypoint
-      - "--entrypoints.websecure.address=:443"     
-
-      # Let's Encrypt (ACME)
-      - "--certificatesresolvers.myresolver.acme.email=tu-correo@ejemplo.com"
-      - "--certificatesresolvers.myresolver.acme.storage=/acme.json"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web" 
-      # Redirección HTTP a HTTPS
+      # Redirección automática HTTP a HTTPS
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
 
+      # Let's Encrypt (ACME)
+      # IMPORTANTE: Pon tu correo real aquí
+      - "--certificatesresolvers.myresolver.acme.email=tu_correo_real@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/acme.json"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
 
 networks:
   proxy_network:
